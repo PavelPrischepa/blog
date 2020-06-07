@@ -4,8 +4,7 @@ title = "Pavel Prischepa"
 theme = "anubis"
 paginate = 3
 
-disqusShortname = ""
-googleAnalytics = ""
+googleAnalytics = "UA-23656190-3"
 
 [author]
   name = "Pavel Prischepa"
