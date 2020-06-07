@@ -21,7 +21,7 @@ jobs:
         # extended: true
 
     - name: Build
-      run: hugo --minify
+      run: HUGO_ENV=production hugo --minify
 
     - name: Print a greeting
       run: cp CNAME public/
