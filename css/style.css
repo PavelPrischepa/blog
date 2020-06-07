@@ -32,7 +32,7 @@ nav,
 section,
 summary {
     display: block;
-}	
+}
 
 .container {
     max-width: 42em;
@@ -90,7 +90,7 @@ a.skip-main {
     z-index:-999;
 }
 
-a.skip-main:focus, 
+a.skip-main:focus,
 a.skip-main:active {
     left: auto;
     top: 0px;
@@ -329,7 +329,7 @@ article img {
 }
 
 .pagination {
-    text-align: center;   
+    text-align: center;
 }
 
 .pagination-item {
@@ -412,4 +412,28 @@ ul.language-select > li {
     header nav a {
         margin-left: 5%;
     }
+}
+
+/* Custom CSS */
+figure.center > img
+{
+    display: block;
+    margin: 0.7rem auto; /* you can replace the vertical '0.7rem' by
+                            whatever floats your boat, but keep the
+                            horizontal 'auto' for this to work */
+    /* whatever else styles you fancy here */
+}
+
+figure.floatleft > img
+{
+    float:left;
+    margin: 0.7rem;      /* this margin is totally up to you */
+    /* whatever else styles you fancy here */
+}
+
+figure.floatright > img
+{
+    float:right;
+    margin: 0.7rem;      /* this margin is totally up to you */
+    /* whatever else styles you fancy here */
 }
