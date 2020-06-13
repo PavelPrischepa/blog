@@ -29,13 +29,14 @@ Storing up to 1024 IDs requires &lt;code>10 bits&lt;/code>.&lt;/p>
 &lt;h3 id="how-long-can-i-generate-ids-this-way-before-overflows-53-bits">How long can I generate IDs this way before overflows 53 bits?&lt;/h3>
 &lt;p>Let is calculate. 53 bits can hold:&lt;/p>
 &lt;ul>
-&lt;li>&lt;code>(1&amp;lt;&amp;lt;53 - 1)&lt;/code> = 9007199254740991 milliseconds&lt;/li>
-&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000&lt;/code> = 9007199254740 seconds&lt;/li>
-&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000 / 86400&lt;/code> = 104249991 days&lt;/li>
-&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000 / 86400 / 365&lt;/code> = 285616 years&lt;/li>
+&lt;li>&lt;code>(1&amp;lt;&amp;lt;53 - 1) = 9007199254740991 milliseconds&lt;/code>&lt;/li>
+&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000 = 9007199254740 seconds&lt;/code>&lt;/li>
+&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000 / 86400 = 104249991 days&lt;/code>&lt;/li>
+&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000 / 86400 / 365 = 285616 years&lt;/code>&lt;/li>
 &lt;/ul>
-&lt;p>Yeah, &lt;code>285616 years&lt;/code> is pretty enough! In other words, I may generate 1024000 IDs per second for 285616 years.
-Looks pretty enough for me.&lt;/p>
+&lt;p>Yeah, &lt;code>285616 years&lt;/code> is pretty enough!&lt;/p>
+&lt;p>In other words, I may generate 1024000 IDs per second per table for 285616 years.&lt;/p>
+&lt;p>Looks pretty enough for me.&lt;/p>
 &lt;h2 id="creating-tables">Creating tables&lt;/h2>
 &lt;p>Let is create tables that will use &lt;code>next_id()&lt;/code> function.&lt;/p>
 &lt;p>Authors table:&lt;/p>
