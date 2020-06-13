@@ -1,6 +1,7 @@
 +++
 date = "2020-06-13"
 title = "Obfuscating entity IDs in PostgreSQL"
+summary = "Elegant way to obfuscate entity IDs on PostgreSQL level without generating UUIDs."
 slug = "obfuscating-entity-ids-in-postgresql"
 aliases = ["obfuscating-entity-ids-in-postgres"]
 tags = ["postgres"]
