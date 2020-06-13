@@ -1,15 +1,15 @@
 +++
 date = "2020-06-13"
-title = "Obfuscating database entity IDs in Postgres"
+title = "Obfuscating entity IDs in Postgres"
 slug = "obfuscating-entity-ids-in-postgres"
 tags = ["postgres"]
 categories = ["development"]
 +++
 
-I was looking for a way of obfuscation database entity IDs and make it non-obvious for users.
+I was looking for a way of obfuscation entity IDs stored in Postgres and make it non-obvious for end users.
 
 Eventually, I found a very interesting approach described in ["Sharding & IDs at Instagram"](https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c) post.
-Approach described in that post based on generating obfuscated integer identifiers by a timestamp.
+That approach based on generating obfuscated integer identifiers by a timestamp using Postgres function.
 Generated identifiers could be sorted naturally from oldest to newest, and vice versa. 
 
 That article is very interesting though it contains some minor problems that may make it difficult to understand it for beginners.
