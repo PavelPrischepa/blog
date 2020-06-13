@@ -1,12 +1,13 @@
 +++
 date = "2020-06-13"
-title = "Obfuscating entity IDs in Postgres"
-slug = "obfuscating-entity-ids-in-postgres"
+title = "Obfuscating entity IDs in PostgreSQL"
+slug = "obfuscating-entity-ids-in-postgresql"
+aliases = ["obfuscating-entity-ids-in-postgres"]
 tags = ["postgres"]
 categories = ["development"]
 +++
 
-I was looking for a way of obfuscation entity IDs stored in Postgres and make it non-obvious for end users.
+I was looking for a way of obfuscation entity IDs stored in PostgreSQL and make it non-obvious for end users.
 
 Eventually, I found a very interesting approach described in ["Sharding & IDs at Instagram"](https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c) post.
 That approach based on generating obfuscated integer identifiers by a timestamp using Postgres function.
@@ -18,7 +19,7 @@ Here is my implementation of that approach.
 
 ## Creating `next_id()` function
 
-Let is use the same Postgres function `next_id()` for all the tables:
+Let is use the same PostgreSQL function `next_id()` for all the tables:
 
 ```postgresql
 CREATE FUNCTION next_id(sequence_name TEXT, OUT result BIGINT) AS
@@ -39,7 +40,7 @@ $$ LANGUAGE plpgsql;
 This function generates IDs using sequence name and current timestamp.
 
 I use `BIGINT` field type for `id` fields in database tables. 
-`BIGINT` is signed types of 64 bits (Postgres does not support unsigned `BIGINT`). 
+`BIGINT` is signed types of 64 bits (PostgreSQL does not support unsigned `BIGINT`). 
 As it is signed type, and I want positive values for IDs, I may use `64 - 1 = 63 bits` only.
 
 Using this function I can generate up to 1024 ID per millisecond that is pretty enough. 
