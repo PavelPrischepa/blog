@@ -1,6 +1,7 @@
 +++
-title = "My blog is here!"
 date = "2020-06-07"
+title = "My blog is here!"
+slug = "blog-is-here"
 summary = "I just assembled my blog."
 +++
 
