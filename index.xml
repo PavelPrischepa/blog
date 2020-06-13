@@ -1,4 +1,63 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Pavel Prischepa</title><link>https://pavel.prischepa.me/</link><description>Pavel Prischepa</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 07 Jun 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://pavel.prischepa.me/index.xml" rel="self" type="application/rss+xml"/><item><title/><link>https://pavel.prischepa.me/archives/</link><pubDate>Sun, 07 Jun 2020 00:00:00 +0000</pubDate><guid>https://pavel.prischepa.me/archives/</guid><description/></item><item><title>About</title><link>https://pavel.prischepa.me/about/</link><pubDate>Sun, 07 Jun 2020 00:00:00 +0000</pubDate><guid>https://pavel.prischepa.me/about/</guid><description>&lt;p>This blog aims to share something about software development and to be a place for practicing English.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Pavel Prischepa</title><link>https://pavel.prischepa.me/</link><description>Pavel Prischepa</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 07 Jun 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://pavel.prischepa.me/index.xml" rel="self" type="application/rss+xml"/><item><title>Obfuscating database entity IDs in Postgres</title><link>https://pavel.prischepa.me/post/obfuscating-entity-ids-in-postgres/</link><pubDate>Sat, 13 Jun 2020 00:00:00 +0000</pubDate><guid>https://pavel.prischepa.me/post/obfuscating-entity-ids-in-postgres/</guid><description>&lt;p>I was looking for a way of obfuscation database entity IDs and make it non-obvious for users.&lt;/p>
+&lt;p>Eventually, I found a very interesting approach described in &lt;a href="https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c">&amp;ldquo;Sharding &amp;amp; IDs at Instagram&amp;rdquo;&lt;/a> post.
+Approach described in that post based on generating obfuscated integer identifiers by a timestamp.
+Generated identifiers could be sorted naturally from oldest to newest, and vice versa.&lt;/p>
+&lt;p>That article is very interesting though it contains some minor problems that may make it difficult to understand it for beginners.&lt;/p>
+&lt;p>Here is my implementation of that approach.&lt;/p>
+&lt;h2 id="creating-next_id-function">Creating &lt;code>next_id()&lt;/code> function&lt;/h2>
+&lt;p>Let is use the same Postgres function &lt;code>next_id()&lt;/code> for all the tables:&lt;/p>
+&lt;div class="highlight">&lt;pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&lt;code class="language-postgresql" data-lang="postgresql">&lt;span style="color:#66d9ef">CREATE&lt;/span> &lt;span style="color:#66d9ef">FUNCTION&lt;/span> next_id(sequence_name TEXT, &lt;span style="color:#66d9ef">OUT&lt;/span> result BIGINT) &lt;span style="color:#66d9ef">AS&lt;/span>
+&lt;span style="color:#e6db74">$$&lt;/span>
+&lt;span style="color:#66d9ef">DECLARE&lt;/span>
+app_epoch_millis BIGINT &lt;span style="color:#f92672">:=&lt;/span> &lt;span style="color:#ae81ff">1577836800000&lt;/span>; &lt;span style="color:#75715e">-- 2020-01-01 00:00:00
+&lt;/span>&lt;span style="color:#75715e">&lt;/span> seq_id BIGINT;
+now_millis BIGINT;
+&lt;span style="color:#66d9ef">BEGIN&lt;/span>
+&lt;span style="color:#66d9ef">SELECT&lt;/span> (nextval(sequence_name) &lt;span style="color:#f92672">-&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>) &lt;span style="color:#f92672">%&lt;/span> &lt;span style="color:#ae81ff">1024&lt;/span> &lt;span style="color:#66d9ef">INTO&lt;/span> seq_id; &lt;span style="color:#75715e">-- 1024 IDs per millisecond possible
+&lt;/span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#66d9ef">SELECT&lt;/span> FLOOR(&lt;span style="color:#66d9ef">EXTRACT&lt;/span>(EPOCH &lt;span style="color:#66d9ef">FROM&lt;/span> clock_timestamp()) &lt;span style="color:#f92672">*&lt;/span> &lt;span style="color:#ae81ff">1000&lt;/span>) &lt;span style="color:#66d9ef">INTO&lt;/span> now_millis;
+&lt;span style="color:#75715e">-- 10 bits for ID
+&lt;/span>&lt;span style="color:#75715e">&lt;/span> result &lt;span style="color:#f92672">:=&lt;/span> ((now_millis &lt;span style="color:#f92672">-&lt;/span> app_epoch_millis) &lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span> &lt;span style="color:#ae81ff">10&lt;/span>) &lt;span style="color:#f92672">|&lt;/span> (seq_id);
+&lt;span style="color:#66d9ef">END&lt;/span>;
+&lt;span style="color:#e6db74">$$&lt;/span> &lt;span style="color:#66d9ef">LANGUAGE&lt;/span> &lt;span style="color:#e6db74">plpgsql&lt;/span>;
+&lt;/code>&lt;/pre>&lt;/div>&lt;p>This function generates IDs using sequence name and current timestamp.&lt;/p>
+&lt;p>I use &lt;code>BIGINT&lt;/code> field type for &lt;code>id&lt;/code> fields in database tables.
+&lt;code>BIGINT&lt;/code> is signed types of 64 bits (Postgres does not support unsigned &lt;code>BIGINT&lt;/code>).
+As it is signed type, and I want positive values for IDs, I may use &lt;code>64 - 1 = 63 bits&lt;/code> only.&lt;/p>
+&lt;p>Using this function I can generate up to 1024 ID per millisecond that is pretty enough.
+Storing up to 1024 IDs requires &lt;code>10 bits&lt;/code>.&lt;/p>
+&lt;p>So 63 - 10 = 53 bits left for a timestamp.&lt;/p>
+&lt;h3 id="how-long-can-i-generate-ids-this-way-before-overflows-53-bits">How long can I generate IDs this way before overflows 53 bits?&lt;/h3>
+&lt;p>Let is calculate. 53 bits can hold:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>(1&amp;lt;&amp;lt;53 - 1)&lt;/code> = 9007199254740991 milliseconds&lt;/li>
+&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000&lt;/code> = 9007199254740 seconds&lt;/li>
+&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000 / 86400&lt;/code> = 104249991 days&lt;/li>
+&lt;li>or &lt;code>(1&amp;lt;&amp;lt;53 - 1) / 1000 / 86400 / 365&lt;/code> = 285616 years&lt;/li>
+&lt;/ul>
+&lt;p>Yeah, &lt;code>285616 years&lt;/code> is pretty enough! In other words, I may generate 1024000 IDs per second for 285616 years.
+Looks pretty enough for me.&lt;/p>
+&lt;h2 id="creating-tables">Creating tables&lt;/h2>
+&lt;p>Let is create tables that will use &lt;code>next_id()&lt;/code> function.&lt;/p>
+&lt;p>Authors table:&lt;/p>
+&lt;div class="highlight">&lt;pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&lt;code class="language-postgresql" data-lang="postgresql">&lt;span style="color:#66d9ef">CREATE&lt;/span> &lt;span style="color:#66d9ef">SEQUENCE&lt;/span> author_id_seq &lt;span style="color:#66d9ef">AS&lt;/span> BIGINT;
+&lt;span style="color:#66d9ef">CREATE&lt;/span> &lt;span style="color:#66d9ef">TABLE&lt;/span> book
+(
+id BIGINT &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span> &lt;span style="color:#66d9ef">UNIQUE&lt;/span> &lt;span style="color:#66d9ef">DEFAULT&lt;/span> next_id(&lt;span style="color:#e6db74">&amp;#39;author_id_seq&amp;#39;&lt;/span>),
+&lt;span style="color:#66d9ef">Name&lt;/span> TEXT &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span>
+);
+&lt;/code>&lt;/pre>&lt;/div>&lt;p>Books table:&lt;/p>
+&lt;div class="highlight">&lt;pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&lt;code class="language-postgresql" data-lang="postgresql">&lt;span style="color:#66d9ef">CREATE&lt;/span> &lt;span style="color:#66d9ef">SEQUENCE&lt;/span> book_id_seq &lt;span style="color:#66d9ef">AS&lt;/span> BIGINT;
+&lt;span style="color:#66d9ef">CREATE&lt;/span> &lt;span style="color:#66d9ef">TABLE&lt;/span> book
+(
+id BIGINT &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span> &lt;span style="color:#66d9ef">UNIQUE&lt;/span> &lt;span style="color:#66d9ef">DEFAULT&lt;/span> next_id(&lt;span style="color:#e6db74">&amp;#39;book_id_seq&amp;#39;&lt;/span>),
+title TEXT &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span>,
+author_id BIGINT &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span>
+);
+&lt;/code>&lt;/pre>&lt;/div>&lt;p>As you may see each table requires its own sequence. The name of the sequence passed as an argument to &lt;code>next_id()&lt;/code> function.&lt;/p>
+&lt;p>&lt;strong>Do not reuse the same sequence in other tables!&lt;/strong>&lt;/p>
+&lt;p>It is so easy to copy/paste a table creation snippet without changing a sequence name that passed to &lt;code>next_id()&lt;/code> function and hard to fix such a mistake in a live environment when lots of IDs will be created.&lt;/p>
+&lt;h2 id="other-databases">Other databases&lt;/h2>
+&lt;p>This approach could be used in MySQL too and other databases that allow creating stored functions or procedures.&lt;/p></description></item><item><title/><link>https://pavel.prischepa.me/archives/</link><pubDate>Sun, 07 Jun 2020 00:00:00 +0000</pubDate><guid>https://pavel.prischepa.me/archives/</guid><description/></item><item><title>About</title><link>https://pavel.prischepa.me/about/</link><pubDate>Sun, 07 Jun 2020 00:00:00 +0000</pubDate><guid>https://pavel.prischepa.me/about/</guid><description>&lt;p>This blog aims to share something about software development and to be a place for practicing English.&lt;/p>
 &lt;h2 id="about-the-author">About the author&lt;/h2>
 &lt;figure class="floatright">
 &lt;img src="https://pavel.prischepa.me/img/me.jpeg"/>
