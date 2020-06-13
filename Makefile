@@ -1,9 +1,9 @@
-default: build
+default: run
+
+run:
+	hugo server -D --disableFastRender
+.PHONY: run
 
 build:
 	hugo -D
 .PHONY: build
-
-up:
-	hugo server -D
-.PHONY: up

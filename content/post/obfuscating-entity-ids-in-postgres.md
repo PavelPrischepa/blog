@@ -3,6 +3,7 @@ date = "2020-06-13"
 title = "Obfuscating database entity IDs in Postgres"
 slug = "obfuscating-entity-ids-in-postgres"
 tags = ["postgres"]
+categories = ["development"]
 +++
 
 I was looking for a way of obfuscation database entity IDs and make it non-obvious for users.
@@ -49,12 +50,15 @@ So 63 - 10 = 53 bits left for a timestamp.
 ### How long can I generate IDs this way before overflows 53 bits?
 
 Let is calculate. 53 bits can hold:
-- `(1<<53 - 1)` = 9007199254740991 milliseconds
-- or `(1<<53 - 1) / 1000` = 9007199254740 seconds
-- or  `(1<<53 - 1) / 1000 / 86400` = 104249991 days
-- or  `(1<<53 - 1) / 1000 / 86400 / 365` = 285616 years
+- `(1<<53 - 1) = 9007199254740991 milliseconds`
+- or `(1<<53 - 1) / 1000 = 9007199254740 seconds`
+- or  `(1<<53 - 1) / 1000 / 86400 = 104249991 days`
+- or  `(1<<53 - 1) / 1000 / 86400 / 365 = 285616 years`
 
-Yeah, `285616 years` is pretty enough! In other words, I may generate 1024000 IDs per second for 285616 years.
+Yeah, `285616 years` is pretty enough! 
+
+In other words, I may generate 1024000 IDs per second per table for 285616 years.
+
 Looks pretty enough for me.
 
 ## Creating tables
