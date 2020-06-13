@@ -10,10 +10,6 @@ disqusShortname = "https-pavel-prischepa-me"
 [author]
   name = "Pavel Prischepa"
 
-[params]
-   author = "Pavel Prischepa"
-   description = "Anubis is a simple minimalist theme for Hugo blog engine."
-
 [menu]
 
   [[menu.main]]
