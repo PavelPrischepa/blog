@@ -10,7 +10,7 @@ This blog aims to share something about software development and to be a place f
 
 {{< figure src="/img/me.jpeg" class="floatright" >}}
 
-Pavel Prischepa is CTO at [Wodby](https://wodby.com), Go, PHP developer.
+Pavel Prischepa is Go developer.
 
 ## Contact
 
