@@ -3,9 +3,7 @@ languageCode = "en-us"
 title = "Pavel Prischepa"
 theme = "anubis"
 paginate = 3
-googleAnalytics = "UA-23656190-3"
 enableRobotsTXT = true
-disqusShortname = "https-pavel-prischepa-me"
 
 [author]
   name = "Pavel Prischepa"
